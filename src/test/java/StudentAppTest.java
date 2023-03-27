@@ -11,6 +11,13 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import page_objects.AddStudentPage;
+import page_objects.AllStudentsPage;
+import page_objects.Notifications;
+
+import static constants.AllConstants.GenderConstants.MALE;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.time.Duration;
 
@@ -18,6 +25,9 @@ public class StudentAppTest {
     WebDriver driver;
     WebDriverWait driverWait;
     Faker dataFaker = new Faker();
+    AllStudentsPage allStudentsPage;
+    AddStudentPage addStudentPage;
+    Notifications notifications;
     private final String APP_URL = "http://app.acodemy.lv/";
     @BeforeMethod
     public void initialize() {
@@ -26,6 +36,9 @@ public class StudentAppTest {
         driver = new ChromeDriver(options);
         driverWait = new WebDriverWait(driver, Duration.ofSeconds(5));
         driver.get(APP_URL);
+        allStudentsPage = new AllStudentsPage(driver);
+        addStudentPage = new AddStudentPage(driver);
+        notifications = new Notifications(driver);
     }
     @AfterMethod
     public void tearDown() {
@@ -34,32 +47,15 @@ public class StudentAppTest {
     }
     @Test
     public void openStudentApp() {
-        driverWait.until(ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='ant-table-title']//button")));
-        WebElement addStudentButton = driver.findElement(By.xpath("//div[@class='ant-table-title']//button"));
-        addStudentButton.click();
-        driverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("name")));
-        WebElement nameField= driver.findElement(By.id("name"));
-        String name = dataFaker.funnyName().name();
-        nameField.sendKeys(name);
-        WebElement emailField = driver.findElement(By.id("email"));
-        emailField.sendKeys(dataFaker.internet().emailAddress());
-        //    driver.findElement(By.xpath("//div[@class='ant-form-item-control-input-content']//button")).click();
-        WebElement genderField = driver.findElement(By.id("gender"));
-        genderField.click();
-        driverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@title='MALE']")));
-        WebElement dropdownValues = driver.findElement(By.xpath("//div[@title='MALE']"));
-        dropdownValues.click();
-        WebElement submitField = driver.findElement(By.xpath("//div[@class='ant-form-item-control-input-content']//button"));
-        submitField.click();
-        driverWait.until(ExpectedConditions.visibilityOfElementLocated(By.className("ant-notification-notice-message")));
-        WebElement notificationMessage = driver.findElement(By.className("ant-notification-notice-message"));
-        WebElement notificationDescription = driver.findElement(By.className("ant-notification-notice-description"));
-        Assert.assertEquals(notificationMessage.getText(), "Student successfully added");
-        Assert.assertEquals(notificationDescription.getText(), name + " was added to the system");
-        WebElement closePopUp = driver.findElement(By.className("ant-notification-close-x"));
-        closePopUp.click();
-        Assert.assertTrue(driverWait.until(ExpectedConditions.invisibilityOf(closePopUp)));
-        
+        allStudentsPage.waitAndClickStudentButton();
+        String name = addStudentPage.waitAndSetValueForNameField();
+        addStudentPage.setValueForEmailField();
+        addStudentPage.waitAndSetGender(MALE);
+        addStudentPage.clickSubmitField();
+        assertEquals(notifications.getMessageFromNotification(), "Student successfully added");
+        assertEquals(notifications.getDescriptionFromNotification(), name + " was added to the system");
 
+        notifications.getPopUpCloseButton().click();
+        assertTrue(driverWait.until(ExpectedConditions.invisibilityOf(notifications.getPopUpCloseButton())));
     }
 }

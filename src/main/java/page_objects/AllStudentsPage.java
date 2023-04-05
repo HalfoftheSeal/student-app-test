@@ -18,7 +18,7 @@ public class AllStudentsPage {
 
     public AllStudentsPage() {
         WebDriver driver = DriverManager.getInstance();
-        this.webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        this.webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
         PageFactory.initElements(driver, this);
     }
 
